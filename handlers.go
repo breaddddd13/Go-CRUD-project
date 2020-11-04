@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -31,7 +32,22 @@ func GetStudent(c *gin.Context) {
 
 // CreateStudent :create new student
 func CreateStudent(c *gin.Context) {
-	var s Student
+	id := c.PostForm("id")
+	name := c.PostForm("name")
+	major := c.PostForm("major")
+	school := c.PostForm("school")
+	uid, err := strconv.Atoi(id)
+	if err != nil {
+		c.AbortWithStatus(404)
+		fmt.Println(err)
+	}
+	s := Student{
+		ID:     uid,
+		Name:   name,
+		Major:  major,
+		School: school,
+	}
+
 	c.BindJSON(&s)
 	db.Create(&s)
 	c.JSON(200, s)
@@ -39,13 +55,27 @@ func CreateStudent(c *gin.Context) {
 
 // UpdateStudent :update student info
 func UpdateStudent(c *gin.Context) {
+	name := c.PostForm("name")
+	major := c.PostForm("major")
+	school := c.PostForm("school")
 	var s Student
+
 	id := c.Params.ByName("id")
 
 	if err := db.Where("id = ?", id).First(&s).Error; err != nil {
 		c.AbortWithStatus(404)
 		fmt.Println(err)
 	}
+	if name != "" {
+		s.Name = name
+	}
+	if major != "" {
+		s.Major = major
+	}
+	if school != "" {
+		s.School = school
+	}
+
 	c.BindJSON(&s)
 	db.Save(&s)
 	c.JSON(200, s)
